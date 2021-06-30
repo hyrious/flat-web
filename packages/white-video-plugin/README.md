@@ -1,28 +1,48 @@
-# white-video-plugin2
+# [@netless/white-video-plugin2](https://www.npmjs.com/package/@netless/white-video-plugin2)
 
-https://www.npmjs.com/package/@netless/white-video-plugin2
+## Install
 
-**注**：注意包名为 `@netless/white-video-plugin2`，为了兼容 `1.x` 发了个新包。
+```bash
+npm i @netless/white-video-plugin2
+```
 
-**注**：以下是 `2.x` 版本的接口，和 `1.x` 不兼容。如果你有回放中使用了 `1.x`，可以参考 [本项目](https://github.com/netless-io/flat-web/blob/7db5a0bf2e351999c1b330eb99cf74de12628022/whiteboard/src/WhiteboardPage.tsx#L186-L193) 做兼容性处理。
+## Usage
 
-## 用法
-
-```typescript
-// 创建 plugins
-const plugins = createPlugins({ "video2": videoPlugin2 });
+```ts
+import { videoPlugin2 } from "@netless/white-video-plugin2";
+import { createPlugins, WhiteWebSdk } from "white-web-sdk";
+let plugins = createPlugins({ video2: videoPlugin2 });
 plugins.setPluginContext("video2", {
-    identity: identity === Identity.creator ? "host" : ""
+    identity: "host",
+    // due to browser's limit, play() will fail if user did not clicked
+    // ref: https://developers.google.com/web/updates/2017/09/autoplay-policy-changes
+    // if that happens, this plugin will show an alert to guide user to click
+    // you can disable that alert by enabling `hideMuteAlert`
+    hideMuteAlert: true,
 });
-// 初始化 sdk 时添加 plugins
 let sdk = new WhiteWebSdk({ plugins });
-
-let room = await sdk.joinRoom(...);
-// 在房间内添加插件教具
+let room = await sdk.joinRoom({ ... });
 room.insertPlugin("video2", {
-    originX: -240, originY: -43, width: 480, height: 86,
+    originX: -240,
+    originY: -43,
+    width: 480,
+    height: 86,
     attributes: { src: url, poster: url2, isNavigationDisable: false },
 });
+```
+
+Through vanilla JS:
+
+```html
+<!-- 1. put white-web-sdk and react before this plugin -->
+<script src="https://cdn.jsdelivr.net/npm/react@17.0.2/umd/react.production.min.js"></script>
+<script src="https://sdk.netless.link/white-web-sdk/2.13.8.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@netless/white-video-plugin2"></script>
+<script>
+    // 2. extract videoPlugin2 from global name WhiteVideoPlugin2
+    const { videoPlugin2 } = WhiteVideoPlugin2;
+    // 3. do whatever you want
+</script>
 ```
 
 ## 参数
@@ -31,6 +51,8 @@ room.insertPlugin("video2", {
 interface Context {
     /** 必填，有操作权限者为 "host"，观看者为 "guest" */
     identity："host" | "guest";
+    /** 选填，不显示无法播放声音的警告 @default false */
+    hideMuteAlert?: boolean;
 }
 
 interface Attributes {
